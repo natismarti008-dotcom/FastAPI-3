@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pymysql.err import IntegrityError
+
 from app.database import conectar
 from app.schemas import ClienteCrear, ClienteRespuesta
 
@@ -8,20 +9,24 @@ router = APIRouter(
     tags=["Clientes"]
 )
 
+
 @router.get("", response_model=list[ClienteRespuesta])
 def listar():
     with conectar() as db:
         with db.cursor() as cur:
-           cur.execute("SELECT * FROM clientes ORDER BY id_cliente")
-        return cur.fetchall()
+            cur.execute(
+                "SELECT id_cliente, nombre, email FROM clientes ORDER BY id_cliente"
+            )
+            return cur.fetchall()
 
 
 @router.get("/{cliente_id}", response_model=ClienteRespuesta)
 def obtener(cliente_id: int):
     with conectar() as db:
         with db.cursor() as cur:
+
             cur.execute(
-                "SELECT * FROM clientes WHERE id=%s",
+                "SELECT id_cliente, nombre, email FROM clientes WHERE id_cliente=%s",
                 (cliente_id,)
             )
 
@@ -43,17 +48,24 @@ def crear(datos: ClienteCrear):
             with db.cursor() as cur:
 
                 cur.execute(
-                    "INSERT INTO clientes (nombre, correo) VALUES (%s, %s)",
+                    """
+                    INSERT INTO clientes (nombre, email)
+                    VALUES (%s, %s)
+                    """,
                     (
                         datos.nombre,
-                        str(datos.correo)
+                        str(datos.email)
                     )
                 )
 
                 nuevo_id = cur.lastrowid
 
                 cur.execute(
-                    "SELECT * FROM clientes WHERE id=%s",
+                    """
+                    SELECT id_cliente, nombre, email
+                    FROM clientes
+                    WHERE id_cliente=%s
+                    """,
                     (nuevo_id,)
                 )
 

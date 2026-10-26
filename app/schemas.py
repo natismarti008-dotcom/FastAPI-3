@@ -2,14 +2,24 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, EmailStr
 
 
+# =========================
+# CLIENTES
+# =========================
+
 class ClienteCrear(BaseModel):
     nombre: str = Field(min_length=2, max_length=100)
     email: EmailStr
 
 
-class ClienteRespuesta(ClienteCrear):
+class ClienteRespuesta(BaseModel):
     id_cliente: int
+    nombre: str
+    email: EmailStr
 
+
+# =========================
+# PRODUCTOS
+# =========================
 
 class ProductoCrear(BaseModel):
     nombre: str = Field(min_length=2, max_length=100)
@@ -22,8 +32,12 @@ class ProductoCrear(BaseModel):
 
 
 class ProductoRespuesta(ProductoCrear):
-    id: int
+    id_producto: int
 
+
+# =========================
+# PEDIDOS
+# =========================
 
 class ItemPedido(BaseModel):
     producto_id: int = Field(gt=0)
