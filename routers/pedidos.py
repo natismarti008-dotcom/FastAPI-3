@@ -8,3 +8,4 @@ router = APIRouter(
 @router.get("/")
 def listar_pedidos():
     return [{"id": 1, "cliente": 1}]
+
