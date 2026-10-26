@@ -12,8 +12,8 @@ router = APIRouter(
 def listar():
     with conectar() as db:
         with db.cursor() as cur:
-            cur.execute("SELECT * FROM clientes ORDER BY id")
-            return cur.fetchall()
+           cur.execute("SELECT * FROM clientes ORDER BY id_cliente")
+        return cur.fetchall()
 
 
 @router.get("/{cliente_id}", response_model=ClienteRespuesta)
