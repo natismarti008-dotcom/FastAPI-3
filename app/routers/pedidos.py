@@ -30,3 +30,11 @@ def crear_pedido(datos: dict):
         "cliente_id": cliente_id,
         "total": total
     }
+
+@router.get("/{id}")
+def obtener_pedido(id: int):
+    return {
+        "id_pedido": id,
+        "cliente_id": 1,
+        "total": 105000
+    }
