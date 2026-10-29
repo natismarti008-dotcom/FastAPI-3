@@ -9,6 +9,7 @@ router = APIRouter(
 )
 
 
+# CREAR PEDIDO
 @router.post("", status_code=201)
 def crear(datos: PedidoCrear):
 
@@ -17,7 +18,11 @@ def crear(datos: PedidoCrear):
 
             # Validar cliente
             cur.execute(
-                "SELECT id_cliente FROM clientes WHERE id_cliente=%s",
+                """
+                SELECT id_cliente
+                FROM clientes
+                WHERE id_cliente=%s
+                """,
                 (datos.cliente_id,)
             )
 
@@ -29,7 +34,7 @@ def crear(datos: PedidoCrear):
                     detail="Cliente no encontrado"
                 )
 
-            # Validar stock
+            # Validar productos y stock
             for item in datos.items:
 
                 cur.execute(
@@ -62,18 +67,25 @@ def crear(datos: PedidoCrear):
             }
 
 
+# LISTAR PEDIDOS
 @router.get("")
 def listar():
+
     return {
         "mensaje": "Listado de pedidos"
     }
 
 
+# DETALLE PEDIDO
 @router.get("/{pedido_id}")
 def detalle(pedido_id: int):
+
     return {
         "pedido_id": pedido_id
     }
+
+
+# RETO B - CAMBIAR ESTADO
 @router.patch("/{pedido_id}/estado")
 def cambiar_estado(
     pedido_id: int,
@@ -132,4 +144,82 @@ def cambiar_estado(
             return {
                 "mensaje": "Estado actualizado",
                 "nuevo_estado": estado
+            }
+
+
+# RETO D - CANCELAR PEDIDO
+@router.post("/{pedido_id}/cancelar")
+def cancelar_pedido(pedido_id: int):
+
+    with conectar() as db:
+        with db.cursor() as cur:
+
+            # Buscar pedido
+            cur.execute(
+                """
+                SELECT estado
+                FROM pedidos
+                WHERE id_pedido=%s
+                """,
+                (pedido_id,)
+            )
+
+            pedido = cur.fetchone()
+
+            if pedido is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Pedido no encontrado"
+                )
+
+            # Evitar doble cancelación
+            if pedido["estado"] == "cancelado":
+                raise HTTPException(
+                    status_code=409,
+                    detail="El pedido ya fue cancelado"
+                )
+
+            # Obtener detalle del pedido
+            cur.execute(
+                """
+                SELECT
+                    producto_id,
+                    cantidad
+                FROM detalle_pedidos
+                WHERE pedido_id=%s
+                """,
+                (pedido_id,)
+            )
+
+            detalles = cur.fetchall()
+
+            # Devolver stock
+            for item in detalles:
+
+                cur.execute(
+                    """
+                    UPDATE productos
+                    SET stock = stock + %s
+                    WHERE id_producto=%s
+                    """,
+                    (
+                        item["cantidad"],
+                        item["producto_id"]
+                    )
+                )
+
+            # Cambiar estado
+            cur.execute(
+                """
+                UPDATE pedidos
+                SET estado='cancelado'
+                WHERE id_pedido=%s
+                """,
+                (pedido_id,)
+            )
+
+            return {
+                "mensaje": "Pedido cancelado correctamente",
+                "pedido_id": pedido_id,
+                "estado": "cancelado"
             }
