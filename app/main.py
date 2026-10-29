@@ -1,20 +1,16 @@
 from fastapi import FastAPI
-
-from app.routers import clientes
-from app.routers import productos
-from app.routers import pedidos
+from app.routers import clientes, productos, pedidos
 
 app = FastAPI(
-    title="Tienda ADSO"
+    title='Taller 3 ADSO - Tienda',
+    version='3.0',
+    description='API relacional: clientes, productos, pedidos y detalles'
 )
 
 app.include_router(clientes.router)
 app.include_router(productos.router)
 app.include_router(pedidos.router)
 
-
-@app.get("/")
+@app.get('/', tags=['Inicio'])
 def inicio():
-    return {
-        "mensaje": "API Tienda ADSO"
-    }
+    return {'mensaje': 'API tienda ADSO', 'documentacion': '/docs'}

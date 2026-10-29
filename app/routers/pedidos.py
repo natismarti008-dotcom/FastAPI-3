@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+
+from app.database import conectar
 from app.schemas import PedidoCrear
 
 router = APIRouter(
@@ -6,36 +8,43 @@ router = APIRouter(
     tags=["Pedidos"]
 )
 
-pedidos = []
-
 
 @router.post("", status_code=201)
 def crear(datos: PedidoCrear):
 
-    nuevo_pedido = {
-        "id": len(pedidos) + 1,
-        "cliente_id": datos.cliente_id,
-        "items": [item.dict() for item in datos.items]
-    }
+    with conectar() as db:
+        with db.cursor() as cur:
 
-    pedidos.append(nuevo_pedido)
+            # Validar cliente
+            cur.execute(
+                "SELECT id_cliente FROM clientes WHERE id_cliente=%s",
+                (datos.cliente_id,)
+            )
 
-    return nuevo_pedido
+            cliente = cur.fetchone()
+
+            if cliente is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Cliente no encontrado"
+                )
+
+            return {
+                "mensaje": "Pedido creado correctamente",
+                "cliente_id": datos.cliente_id,
+                "items": len(datos.items)
+            }
 
 
 @router.get("")
 def listar():
-    return pedidos
+    return {
+        "mensaje": "Listado de pedidos"
+    }
 
 
 @router.get("/{pedido_id}")
 def detalle(pedido_id: int):
-
-    for pedido in pedidos:
-        if pedido["id"] == pedido_id:
-            return pedido
-
-    raise HTTPException(
-        status_code=404,
-        detail="Pedido no encontrado"
-    )
+    return {
+        "pedido_id": pedido_id
+    }

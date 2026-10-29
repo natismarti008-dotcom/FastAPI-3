@@ -4,11 +4,15 @@ from contextlib import contextmanager
 import pymysql
 from dotenv import load_dotenv
 
+# Carga las variables de entorno del archivo .env
 load_dotenv()
 
 
+# Función que crea y administra la conexión a MySQL
 @contextmanager
 def conectar():
+
+    # Establece la conexión con la base de datos
     conexion = pymysql.connect(
         host=os.getenv("DB_HOST", "localhost"),
         port=int(os.getenv("DB_PORT", "3306")),
@@ -22,12 +26,21 @@ def conectar():
     )
 
     try:
+        # Entrega la conexión para que pueda ser utilizada
         yield conexion
+
+        # Guarda los cambios realizados en la base de datos
         conexion.commit()
 
     except Exception:
+
+        # Si ocurre un error, deshace los cambios realizados
         conexion.rollback()
+
+        # Vuelve a lanzar el error
         raise
 
     finally:
+
+        # Cierra la conexión al finalizar el proceso
         conexion.close()
