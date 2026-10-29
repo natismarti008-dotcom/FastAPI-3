@@ -105,8 +105,6 @@ def crear(datos: ClienteCrear):
         )
 
 
-# RETO A
-# Ver los pedidos de un cliente usando JOIN
 @router.get("/{cliente_id}/pedidos")
 def pedidos_cliente(cliente_id: int):
 
@@ -117,23 +115,12 @@ def pedidos_cliente(cliente_id: int):
                 """
                 SELECT
                     p.id_pedido,
-                    p.fecha,
-                    p.total
+                    p.fecha
                 FROM pedidos p
-                INNER JOIN clientes c
-                    ON c.id_cliente = p.cliente_id
-                WHERE c.id_cliente = %s
+                WHERE p.id_cliente = %s
                 ORDER BY p.fecha DESC
                 """,
                 (cliente_id,)
             )
 
-            pedidos = cur.fetchall()
-
-            if not pedidos:
-                raise HTTPException(
-                    status_code=404,
-                    detail="El cliente no tiene pedidos registrados"
-                )
-
-            return pedidos
+            return cur.fetchall()

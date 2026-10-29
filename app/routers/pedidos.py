@@ -29,12 +29,12 @@ def crear(datos: PedidoCrear):
                     detail="Cliente no encontrado"
                 )
 
-            # Validar productos y stock
+            # Validar stock
             for item in datos.items:
 
                 cur.execute(
                     """
-                    SELECT id_producto, stock
+                    SELECT stock
                     FROM productos
                     WHERE id_producto=%s
                     """,
@@ -71,7 +71,65 @@ def listar():
 
 @router.get("/{pedido_id}")
 def detalle(pedido_id: int):
-
     return {
         "pedido_id": pedido_id
     }
+@router.patch("/{pedido_id}/estado")
+def cambiar_estado(
+    pedido_id: int,
+    estado: str
+):
+
+    with conectar() as db:
+        with db.cursor() as cur:
+
+            cur.execute(
+                """
+                SELECT estado
+                FROM pedidos
+                WHERE id_pedido=%s
+                """,
+                (pedido_id,)
+            )
+
+            pedido = cur.fetchone()
+
+            if pedido is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Pedido no encontrado"
+                )
+
+            estado_actual = pedido["estado"]
+
+            if estado_actual != "pendiente":
+                raise HTTPException(
+                    status_code=409,
+                    detail="Solo los pedidos pendientes pueden cambiar de estado"
+                )
+
+            if estado not in [
+                "confirmado",
+                "cancelado"
+            ]:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Estado inválido"
+                )
+
+            cur.execute(
+                """
+                UPDATE pedidos
+                SET estado=%s
+                WHERE id_pedido=%s
+                """,
+                (
+                    estado,
+                    pedido_id
+                )
+            )
+
+            return {
+                "mensaje": "Estado actualizado",
+                "nuevo_estado": estado
+            }
