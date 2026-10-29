@@ -1,77 +1,331 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda ADSO</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f5f5f5;
-        }
+<title>Tienda ADSO</title>
 
-        h1 {
-            color: #2c3e50;
-        }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-        }
+<style>
 
-        button:hover {
-            background-color: #2980b9;
-        }
+body{
+    background:#eef2f7;
+}
 
-        #resultado {
-            margin-top: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-        }
-    </style>
+.header{
+    background:#0d6efd;
+    color:white;
+    padding:20px;
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.table{
+    background:white;
+}
+
+</style>
+
 </head>
 <body>
 
-    <h1>Tienda ADSO</h1>
+<div class="header">
+    <h1>🛒 Sistema Tienda ADSO</h1>
+    <p>Gestión de clientes y productos</p>
+</div>
 
-    <button onclick="listarClientes()">
-        Consultar Clientes
-    </button>
+<div class="container">
 
-    <div id="resultado"></div>
+    <div class="row">
 
-    <script>
+        <!-- CLIENTES -->
 
-        async function listarClientes() {
+        <div class="col-md-6">
 
-            try {
+            <div class="card p-4 mb-4">
 
-                const respuesta = await fetch(
-                    "http://127.0.0.1:8000/clientes"
-                );
+                <h3 class="text-primary">
+                    Registrar Cliente
+                </h3>
 
-                const datos = await respuesta.json();
+                <form id="frmCliente">
 
-                document.getElementById("resultado").innerHTML =
-                    `<pre>${JSON.stringify(datos, null, 2)}</pre>`;
+                    <input
+                        type="text"
+                        id="nombre"
+                        class="form-control mb-3"
+                        placeholder="Nombre Completo"
+                        required>
 
-            } catch (error) {
+                    <input
+                        type="email"
+                        id="email"
+                        class="form-control mb-3"
+                        placeholder="Correo Electrónico"
+                        required>
 
-                document.getElementById("resultado").innerHTML =
-                    "Error al consultar la API";
+                    <button class="btn btn-primary w-100">
+                        Guardar Cliente
+                    </button>
 
-                console.error(error);
-            }
-        }
+                </form>
 
-    </script>
+            </div>
+
+        </div>
+
+        <!-- PRODUCTOS -->
+
+        <div class="col-md-6">
+
+            <div class="card p-4 mb-4">
+
+                <h3 class="text-success">
+                    Registrar Producto
+                </h3>
+
+                <form id="frmProducto">
+
+                    <input
+                        type="text"
+                        id="nombreProducto"
+                        class="form-control mb-3"
+                        placeholder="Nombre Producto"
+                        required>
+
+                    <input
+                        type="number"
+                        id="precio"
+                        class="form-control mb-3"
+                        placeholder="Precio"
+                        required>
+
+                    <input
+                        type="number"
+                        id="stock"
+                        class="form-control mb-3"
+                        placeholder="Stock"
+                        required>
+
+                    <button class="btn btn-success w-100">
+                        Guardar Producto
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CLIENTES -->
+
+    <div class="card p-4 mb-4">
+
+        <div class="d-flex justify-content-between">
+
+            <h3>👥 Clientes Registrados</h3>
+
+            <button
+                class="btn btn-primary"
+                onclick="listarClientes()">
+                Actualizar
+            </button>
+
+        </div>
+
+        <table class="table table-striped mt-3">
+
+            <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+            </tr>
+
+            </thead>
+
+            <tbody id="tablaClientes"></tbody>
+
+        </table>
+
+    </div>
+
+    <!-- PRODUCTOS -->
+
+    <div class="card p-4">
+
+        <div class="d-flex justify-content-between">
+
+            <h3>📦 Productos Registrados</h3>
+
+            <button
+                class="btn btn-success"
+                onclick="listarProductos()">
+                Actualizar
+            </button>
+
+        </div>
+
+        <table class="table table-striped mt-3">
+
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+            </tr>
+            </thead>
+
+            <tbody id="tablaProductos"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+const API = "http://127.0.0.1:8000";
+
+
+/* CLIENTES */
+
+async function listarClientes(){
+
+    const respuesta = await fetch(
+        `${API}/clientes`
+    );
+
+    const datos = await respuesta.json();
+
+    let filas = "";
+
+    datos.forEach(cliente => {
+
+        filas += `
+        <tr>
+            <td>${cliente.id_cliente}</td>
+            <td>${cliente.nombre}</td>
+            <td>${cliente.email}</td>
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("tablaClientes").innerHTML = filas;
+}
+
+
+document
+.getElementById("frmCliente")
+.addEventListener("submit", async e => {
+
+    e.preventDefault();
+
+    const nombre =
+    document.getElementById("nombre").value;
+
+    const email =
+    document.getElementById("email").value;
+
+    await fetch(`${API}/clientes`,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            nombre,
+            email
+        })
+    });
+
+    listarClientes();
+
+});
+
+
+/* PRODUCTOS */
+
+async function listarProductos(){
+
+    const respuesta = await fetch(
+        `${API}/productos`
+    );
+
+    const datos = await respuesta.json();
+
+    let filas = "";
+
+    datos.forEach(producto => {
+
+        filas += `
+        <tr>
+            <td>${producto.id_producto}</td>
+            <td>${producto.nombre}</td>
+            <td>$ ${producto.precio}</td>
+            <td>${producto.stock}</td>
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("tablaProductos").innerHTML = filas;
+}
+
+
+document
+.getElementById("frmProducto")
+.addEventListener("submit", async e => {
+
+    e.preventDefault();
+
+    const nombre =
+    document.getElementById("nombreProducto").value;
+
+    const precio =
+    Number(document.getElementById("precio").value);
+
+    const stock =
+    Number(document.getElementById("stock").value);
+
+    await fetch(`${API}/productos`,{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            nombre,
+            precio,
+            stock
+        })
+
+    });
+
+    listarProductos();
+
+});
+
+
+listarClientes();
+listarProductos();
+
+</script>
 
 </body>
 </html>
