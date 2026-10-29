@@ -158,3 +158,5 @@ def cambiar_stock(
 
             # Devuelve los datos actualizados
             return cur.fetchone()
+
+        
